@@ -1,0 +1,9 @@
+/* Aggiungi o sostituisci queste regole nel tuo <style> */
+.grid-preview.icon-grid-smaller { 
+    grid-template-columns: repeat(10, 1fr); /* Raddoppiate le colonne per dimezzare la grandezza */
+    gap: 5px; 
+}
+
+.icon-grid-smaller .preview-item {
+    font-size: 1.2rem; /* Icone più piccole */
+}

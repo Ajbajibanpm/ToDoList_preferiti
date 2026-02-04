@@ -3,10 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title id="browser-title">Editor Fondazione</title>
-    <link id="favicon" rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏛️</text></svg>">
+    <title id="browser-title">Crea una nuova task!</title>
+    <link id="favicon" rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💡</text></svg>">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
-    <style>
+    <link rel="stylesheet" type="text/css" href="style.css"> <!--collegamento al css-->
+
+<style>
         :root { --ivory: #FFFFF0; --deep-blue: #003366; --gold: #B8860B; --text-sans: 'Inter', sans-serif; --title-serif: 'Playfair Display', serif; }
         body { margin: 0; background-color: var(--ivory); color: var(--deep-blue); font-family: var(--text-sans); transition: background 0.5s ease; scroll-behavior: smooth; }
         h1, h2, h3 { font-family: var(--title-serif); font-weight: 700; }
@@ -75,13 +77,94 @@
 
     <script>
         const iconData = [
-            { char: '🏛️', tags: 'istituzione museo storia' }, { char: '🏰', tags: 'castello storia' }, { char: '📜', tags: 'pergamena documento' },
-            { char: '📖', tags: 'libro studio' }, { char: '💻', tags: 'pc tech computer' }, { char: '📱', tags: 'telefono smartphone' },
-            { char: '💡', tags: 'idea luce' }, { char: '📊', tags: 'dati grafico' }, { char: '🔍', tags: 'cerca' }, { char: '🎨', tags: 'arte colore' }
+            { char: '💡', tags: 'idea luce lampadina pensiero' },            { char: '🏛️', tags: 'istituzione museo storia edificio roma antico' },
+            { char: '🏰', tags: 'castello storia medioevo fiaba' },
+            { char: '📜', tags: 'pergamena storia antico documento scrittura' },
+            { char: '📖', tags: 'libro lettura studio scuola biblioteca' },
+            { char: '📚', tags: 'libri studio biblioteca scuola' },
+            { char: '⏳', tags: 'tempo clessidra attesa storia' },
+            { char: '🌍', tags: 'mondo terra viaggio geografia' },
+            { char: '🧭', tags: 'bussola viaggio orientamento nord' },
+            { char: '🗺️', tags: 'mappa viaggio geografia' },
+            { char: '🔒', tags: 'lucchetto sicurezza chiuso privacy' },
+            { char: '💻', tags: 'computer tech tecnologia pc lavoro' },
+            { char: '📱', tags: 'telefono smartphone cellulare tech mobile' },
+            { char: '📞', tags: 'chiamata telefono ufficio' },
+            { char: '📠', tags: 'fax ufficio tech vecchio' },
+            { char: '💿', tags: 'disco cd dvd tech musica' },
+            { char: '⚡', tags: 'energia fulmine elettricità carica' },
+            { char: '🧪', tags: 'scienza laboratorio chimica esperimento' },
+            { char: '📊', tags: 'grafico dati ufficio lavoro tech' },
+            { char: '📈', tags: 'crescita grafico dati ufficio' },
+            { char: '🔍', tags: 'cerca lente ricerca trova' },
+            { char: '🌡️', tags: 'meteo temperatura caldo freddo scienza' },
+            { char: '🖋️', tags: 'penna scrittura ufficio firma' },
+            { char: '✂️', tags: 'forbici taglia ufficio lavoro' },
+            { char: '🛠️', tags: 'strumenti lavoro riparazione attrezzi' },
+            { char: '📁', tags: 'cartella ufficio documenti' },
+            { char: '💼', tags: 'lavoro valigetta ufficio business' },
+            { char: '🗓️', tags: 'calendario data tempo appuntamento' },
+            { char: '✉️', tags: 'mail posta lettera ufficio' },
+            { char: '📦', tags: 'pacco spedizione scatola' },
+            { char: '🔑', tags: 'chiave casa apri sicurezza' },
+            { char: '📷', tags: 'foto macchina fotografia memoria' },
+            { char: '🎨', tags: 'arte pittura disegno colore' },
+            { char: '🌸', tags: 'fiore primavera natura ciliegio' },
+            { char: '🌹', tags: 'rosa fiore amore natura' },
+            { char: '🌷', tags: 'tulipano fiore natura primavera' },
+            { char: '🌱', tags: 'pianta natura crescita verde' },
+            { char: '🌳', tags: 'albero natura bosco verde' },
+            { char: '🥦', tags: 'verdura cibo salute vegetale' },
+            { char: '🥕', tags: 'carota verdura cibo salute' },
+            { char: '🍎', tags: 'mela frutta cibo salute' },
+            { char: '🐾', tags: 'impronta animali cane gatto natura' },
+            { char: '🐈', tags: 'gatto animali pet casa' },
+            { char: '🐶', tags: 'cane animali pet casa' },
+            { char: '🐱', tags: 'gatto muso animali pet' },
+            { char: '🍕', tags: 'pizza cibo cena italia' },
+            { char: '🍝', tags: 'pasta cibo cena italia' },
+            { char: '🥘', tags: 'cibo cucina padella cena' },
+            { char: '🧀', tags: 'formaggio cibo snack' },
+            { char: '🍽️', tags: 'piatti posate cibo cena ristorante' },
+            { char: '🥛', tags: 'latte bicchiere acqua bere' },
+            { char: '☕', tags: 'caffè colazione bere pausa' },
+            { char: '🍷', tags: 'vino bere cena festa' },
+            { char: '🍺', tags: 'birra bere festa pub' },
+            { char: '🚗', tags: 'auto macchina viaggio trasporto' },
+            { char: '🏎️', tags: 'auto corsa macchina veloce' },
+            { char: '🚲', tags: 'bici bicicletta sport trasporto' },
+            { char: '✈️', tags: 'aereo viaggio volo vacanza' },
+            { char: '🚀', tags: 'razzo spazio tech viaggio' },
+            { char: '🛸', tags: 'ufo alieni spazio mistero' },
+            { char: '🧳', tags: 'valigia viaggio vacanza bagaglio' },
+            { char: '⛱️', tags: 'ombrellone mare vacanza estate' },
+            { char: '🚩', tags: 'bandiera segnale obiettivo' },
+            { char: '🏠', tags: 'casa edificio famiglia' },
+            { char: '🛌', tags: 'letto riposo dormire casa' },
+            { char: '🛁', tags: 'vasca bagno doccia pulizia' },
+            { char: '🧻', tags: 'carta bagno pulizia casa' },
+            { char: '🎒', tags: 'zaino scuola viaggio' },
+            { char: '👔', tags: 'vestito formale lavoro ufficio' },
+            { char: '🛒', tags: 'spesa carrello acquisti' },
+            { char: '🎁', tags: 'regalo festa compleanno' },
+            { char: '🎀', tags: 'fiocco regalo decorazione' },
+            { char: '💰', tags: 'soldi denaro ricchezza banca' },
+            { char: '💎', tags: 'diamante valore gioiello' },
+            { char: '🎸', tags: 'chitarra musica strumento rock' },
+            { char: '🎵', tags: 'nota musica canzone audio' },
+            { char: '🎧', tags: 'cuffie musica audio tech' },
+            { char: '🎮', tags: 'videogioco gioco tech svago' },
+            { char: '🕹️', tags: 'joystick gioco tech vintage' },
+            { char: '⚽', tags: 'calcio sport palla gioco' },
+            { char: '🎲', tags: 'dado gioco fortuna azzardo' },
+            { char: '🎯', tags: 'bersaglio obiettivo gioco precisione' }
         ];
-
-        const defaultImages = [{ id: 'def1', url: '#FFFFF0' }, { id: 'def2', url: 'url(https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=800)' }];
-        let customImages = JSON.parse(localStorage.getItem('fondazione_custom_imgs')) || [];
+  
+        const defaultImages = [
+            { id: 'def1', url: '#FFFFF0' },
+            { id: 'def2', url: 'url(https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=800)' },
+            { id: 'def3', url: 'url(https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=800)' }
+        ];        let customImages = JSON.parse(localStorage.getItem('fondazione_custom_imgs')) || [];
         let pages = JSON.parse(localStorage.getItem('fondazione_data')) || [];
         
         let selectedIcon = iconData[0].char;
@@ -169,14 +252,25 @@
 
         function renderIcons() {
             const grid = document.getElementById('icon-grid');
+            // Aggiungiamo la classe per le icone piccole se non presente
+            grid.classList.add('icon-grid-smaller');
+            
             const term = document.getElementById('search-icons').value.toLowerCase();
             grid.innerHTML = '';
-            const filtered = iconData.filter(i => i.tags.includes(term) || term === '');
-            filtered.forEach((icon, i) => {
+            
+            // Filtriamo e prendiamo solo i primi 20 risultati
+            const filtered = iconData
+                .filter(i => i.tags.includes(term) || term === '')
+                .slice(0, 20); 
+
+            filtered.forEach((icon) => {
                 const div = document.createElement('div');
                 div.className = `preview-item ${icon.char === selectedIcon ? 'selected' : ''}`;
                 div.innerHTML = `<span>${icon.char}</span>`;
-                div.onclick = () => { selectedIcon = icon.char; renderIcons(); };
+                div.onclick = () => { 
+                    selectedIcon = icon.char; 
+                    renderIcons(); 
+                };
                 grid.appendChild(div);
             });
         }
