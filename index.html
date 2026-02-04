@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Editor Fondazione</title>
+    <title id="browser-title">Editor Fondazione</title>
+    <link id="favicon" rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏛️</text></svg>">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -20,6 +21,7 @@
             color: var(--deep-blue);
             font-family: var(--text-sans);
             transition: background 0.5s ease;
+            scroll-behavior: smooth;
         }
 
         h1, h2, h3 { font-family: var(--title-serif); font-weight: 700; }
@@ -41,105 +43,112 @@
             width: 100%;
             box-shadow: 0 10px 30px rgba(0,0,0,0.05);
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 50px;
         }
 
         input[type="text"], textarea {
             width: 100%;
-            padding: 12px;
+            padding: 15px;
             border: 1px solid var(--gold);
             background: transparent;
             margin-bottom: 20px;
             box-sizing: border-box;
             font-family: var(--text-sans);
-            outline-color: var(--deep-blue);
+            outline: none;
+            font-size: 1rem;
         }
-
-        .search-icon-input { margin-bottom: 10px !important; font-size: 0.9rem; border-style: dashed !important; }
 
         .selector-label {
             display: block;
             text-align: left;
             font-weight: 600;
-            margin: 15px 0 10px;
+            margin: 30px 0 15px;
             text-transform: uppercase;
             font-size: 0.75rem;
             letter-spacing: 1px;
+            border-bottom: 1px solid rgba(184, 134, 11, 0.2);
+            padding-bottom: 5px;
         }
 
         .grid-preview {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
-            gap: 8px;
+            grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+            gap: 10px;
             margin-bottom: 20px;
-            max-height: 200px;
+            max-height: 300px;
             overflow-y: auto;
-            padding: 5px;
-            border: 1px solid #f0f0f0;
+            padding: 10px;
         }
 
-        .img-grid { grid-template-columns: repeat(auto-fill, minmax(85px, 1fr)); max-height: none; overflow: visible; }
+        .img-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); max-height: none; }
 
         .preview-item {
             border: 1px solid #ddd;
             border-radius: 4px;
             cursor: pointer;
-            position: relative;
             display: flex;
             align-items: center;
             justify-content: center;
             aspect-ratio: 1/1;
             background: white;
-            transition: all 0.2s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .preview-item.selected { border: 2px solid var(--gold); transform: scale(1.05); }
+        .preview-item.selected { border: 2px solid var(--gold); transform: scale(1.05); box-shadow: 0 5px 15px rgba(184, 134, 11, 0.2); }
         .preview-item img { width: 100%; height: 100%; object-fit: cover; }
         
-        .delete-img-btn {
-            position: absolute; top: 2px; right: 2px;
-            background: rgba(204, 0, 0, 0.8); color: white;
-            border: none; border-radius: 50%; width: 18px; height: 18px;
-            font-size: 12px; cursor: pointer; display: none; z-index: 10;
-        }
-        .preview-item:hover .delete-img-btn { display: block; }
-
-        .add-btn { font-size: 2rem; color: var(--gold); border: 2px dashed var(--gold); order: -2; }
+        .add-btn { font-size: 2rem; color: var(--gold); border: 2px dashed var(--gold); }
 
         button.main-btn {
             background-color: var(--deep-blue);
-            color: white; border: none; padding: 15px 40px;
+            color: white; border: none; padding: 18px 45px;
             cursor: pointer; font-weight: 600; letter-spacing: 1px;
+            transition: opacity 0.2s;
         }
 
-        #links-container { width: 100%; max-width: 700px; margin-bottom: 50px; text-align: left; }
+        /* Archivio Nascondibile */
+        #links-container { width: 100%; max-width: 700px; margin-bottom: 30px; }
+        .archive-header { 
+            display: flex; justify-content: space-between; align-items: center; 
+            cursor: pointer; padding: 10px 0; border-bottom: 2px solid var(--deep-blue);
+        }
+        #archive-content { display: none; margin-top: 15px; }
         .history-item {
             display: flex; justify-content: space-between; align-items: center;
-            padding: 15px; border: 1px solid rgba(184, 134, 11, 0.1);
-            background: white; margin-bottom: 8px; border-radius: 4px;
+            padding: 15px; background: white; margin-bottom: 5px; border: 1px solid #eee;
         }
     </style>
 </head>
 <body>
 
     <div id="home-view" class="container">
-        <div id="links-container"></div>
+        <div id="links-container">
+            <div class="archive-header" onclick="toggleArchive()">
+                <h3>Archivio Pagine</h3>
+                <span id="archive-chevron">▼</span>
+            </div>
+            <div id="archive-content"></div>
+        </div>
 
         <div class="card">
             <h2>Nuova Risorsa</h2>
-            <input type="text" id="page-title" placeholder="Titolo della pagina...">
+            <input type="text" id="page-title" placeholder="Titolo della pagina..." onkeydown="if(event.key==='Enter') scrollToSection('bg-section')">
 
-            <span class="selector-label">Sfondo</span>
-            <div class="grid-preview img-grid" id="image-grid">
-                <div class="preview-item add-btn" onclick="document.getElementById('file-input').click()">+</div>
-                <input type="file" id="file-input" hidden accept="image/*" onchange="uploadImage(this)">
+            <div id="bg-section">
+                <span class="selector-label">1. Scegli lo Sfondo</span>
+                <div class="grid-preview img-grid" id="image-grid">
+                    <div class="preview-item add-btn" onclick="document.getElementById('file-input').click()">+</div>
+                    <input type="file" id="file-input" hidden accept="image/*" onchange="uploadImage(this)">
+                </div>
             </div>
 
-            <span class="selector-label">Icona</span>
-            <input type="text" id="search-icons" class="search-icon-input" placeholder="Filtra icone..." oninput="renderIcons()">
-            <div class="grid-preview" id="icon-grid"></div>
+            <div id="icon-section">
+                <span class="selector-label">2. Scegli l'Icona (Barra Browser)</span>
+                <input type="text" id="search-icons" placeholder="Cerca icona..." oninput="renderIcons()">
+                <div class="grid-preview" id="icon-grid"></div>
+            </div>
 
-            <button class="main-btn" onclick="createPage()">CREA E COPIA URL</button>
+            <button class="main-btn" onclick="createPage()">CREA PAGINA</button>
         </div>
     </div>
 
@@ -147,102 +156,40 @@
         <div class="card">
             <div id="detail-icon" style="font-size: 4rem;"></div>
             <h1 id="detail-title"></h1>
-            <textarea id="detail-desc" rows="8" placeholder="Scrivi qui il contenuto..."></textarea>
-            <button class="main-btn" onclick="saveDescription()">SALVA CONTENUTO</button>
-            <p style="margin-top:20px"><a href="#" onclick="window.location.hash=''; return false;" style="color: var(--gold); text-decoration: none; font-weight: bold;">← Torna all'Archivio</a></p>
+            <textarea id="detail-desc" rows="10" placeholder="Contenuto della pagina..."></textarea>
+            <button class="main-btn" onclick="saveDescription()">SALVA</button>
+            <p><a href="#" onclick="goHome(); return false;" style="color: var(--gold); text-decoration: none;">← Esci</a></p>
         </div>
     </div>
 
     <script>
         const iconData = [
-            { char: '🏛️', tags: 'istituzione museo storia edificio roma antico' },
-            { char: '🏰', tags: 'castello storia medioevo fiaba' },
-            { char: '📜', tags: 'pergamena storia antico documento scrittura' },
-            { char: '📖', tags: 'libro lettura studio scuola biblioteca' },
-            { char: '📚', tags: 'libri studio biblioteca scuola' },
-            { char: '⏳', tags: 'tempo clessidra attesa storia' },
-            { char: '🌍', tags: 'mondo terra viaggio geografia' },
-            { char: '🧭', tags: 'bussola viaggio orientamento nord' },
-            { char: '🗺️', tags: 'mappa viaggio geografia' },
-            { char: '🔒', tags: 'lucchetto sicurezza chiuso privacy' },
-            { char: '💻', tags: 'computer tech tecnologia pc lavoro' },
-            { char: '📱', tags: 'telefono smartphone cellulare tech mobile' },
-            { char: '📞', tags: 'chiamata telefono ufficio' },
-            { char: '📠', tags: 'fax ufficio tech vecchio' },
-            { char: '💿', tags: 'disco cd dvd tech musica' },
-            { char: '💡', tags: 'idea luce lampadina pensiero' },
-            { char: '⚡', tags: 'energia fulmine elettricità carica' },
-            { char: '🧪', tags: 'scienza laboratorio chimica esperimento' },
-            { char: '📊', tags: 'grafico dati ufficio lavoro tech' },
-            { char: '📈', tags: 'crescita grafico dati ufficio' },
-            { char: '🔍', tags: 'cerca lente ricerca trova' },
-            { char: '🌡️', tags: 'meteo temperatura caldo freddo scienza' },
-            { char: '🖋️', tags: 'penna scrittura ufficio firma' },
-            { char: '✂️', tags: 'forbici taglia ufficio lavoro' },
-            { char: '🛠️', tags: 'strumenti lavoro riparazione attrezzi' },
-            { char: '📁', tags: 'cartella ufficio documenti' },
-            { char: '💼', tags: 'lavoro valigetta ufficio business' },
-            { char: '🗓️', tags: 'calendario data tempo appuntamento' },
-            { char: '✉️', tags: 'mail posta lettera ufficio' },
-            { char: '📦', tags: 'pacco spedizione scatola' },
-            { char: '🔑', tags: 'chiave casa apri sicurezza' },
-            { char: '📷', tags: 'foto macchina fotografia memoria' },
-            { char: '🎨', tags: 'arte pittura disegno colore' },
-            { char: '🌸', tags: 'fiore primavera natura ciliegio' },
-            { char: '🌹', tags: 'rosa fiore amore natura' },
-            { char: '🌷', tags: 'tulipano fiore natura primavera' },
-            { char: '🌱', tags: 'pianta natura crescita verde' },
-            { char: '🌳', tags: 'albero natura bosco verde' },
-            { char: '🥦', tags: 'verdura cibo salute vegetale' },
-            { char: '🥕', tags: 'carota verdura cibo salute' },
-            { char: '🍎', tags: 'mela frutta cibo salute' },
-            { char: '🐾', tags: 'impronta animali cane gatto natura' },
-            { char: '🐈', tags: 'gatto animali pet casa' },
-            { char: '🐶', tags: 'cane animali pet casa' },
-            { char: '🐱', tags: 'gatto muso animali pet' },
-            { char: '🍕', tags: 'pizza cibo cena italia' },
-            { char: '🍝', tags: 'pasta cibo cena italia' },
-            { char: '🥘', tags: 'cibo cucina padella cena' },
-            { char: '🧀', tags: 'formaggio cibo snack' },
-            { char: '🍽️', tags: 'piatti posate cibo cena ristorante' },
-            { char: '🥛', tags: 'latte bicchiere acqua bere' },
-            { char: '☕', tags: 'caffè colazione bere pausa' },
-            { char: '🍷', tags: 'vino bere cena festa' },
-            { char: '🍺', tags: 'birra bere festa pub' },
-            { char: '🚗', tags: 'auto macchina viaggio trasporto' },
-            { char: '🏎️', tags: 'auto corsa macchina veloce' },
-            { char: '🚲', tags: 'bici bicicletta sport trasporto' },
-            { char: '✈️', tags: 'aereo viaggio volo vacanza' },
-            { char: '🚀', tags: 'razzo spazio tech viaggio' },
-            { char: '🛸', tags: 'ufo alieni spazio mistero' },
-            { char: '🧳', tags: 'valigia viaggio vacanza bagaglio' },
-            { char: '⛱️', tags: 'ombrellone mare vacanza estate' },
-            { char: '🚩', tags: 'bandiera segnale obiettivo' },
-            { char: '🏠', tags: 'casa edificio famiglia' },
-            { char: '🛌', tags: 'letto riposo dormire casa' },
-            { char: '🛁', tags: 'vasca bagno doccia pulizia' },
-            { char: '🧻', tags: 'carta bagno pulizia casa' },
-            { char: '🎒', tags: 'zaino scuola viaggio' },
-            { char: '👔', tags: 'vestito formale lavoro ufficio' },
-            { char: '🛒', tags: 'spesa carrello acquisti' },
-            { char: '🎁', tags: 'regalo festa compleanno' },
-            { char: '🎀', tags: 'fiocco regalo decorazione' },
-            { char: '💰', tags: 'soldi denaro ricchezza banca' },
-            { char: '💎', tags: 'diamante valore gioiello' },
-            { char: '🎸', tags: 'chitarra musica strumento rock' },
-            { char: '🎵', tags: 'nota musica canzone audio' },
-            { char: '🎧', tags: 'cuffie musica audio tech' },
-            { char: '🎮', tags: 'videogioco gioco tech svago' },
-            { char: '🕹️', tags: 'joystick gioco tech vintage' },
-            { char: '⚽', tags: 'calcio sport palla gioco' },
-            { char: '🎲', tags: 'dado gioco fortuna azzardo' },
-            { char: '🎯', tags: 'bersaglio obiettivo gioco precisione' }
+            { char: '🏛️', tags: 'istituzione museo storia roma antico' },
+            { char: '🏰', tags: 'castello storia medioevo' },
+            { char: '📜', tags: 'pergamena documento antico' },
+            { char: '📖', tags: 'libro studio lettura' },
+            { char: '💻', tags: 'pc tech computer lavoro' },
+            { char: '📱', tags: 'telefono smartphone mobile' },
+            { char: '💡', tags: 'idea luce pensiero' },
+            { char: '📊', tags: 'dati grafico ufficio' },
+            { char: '🔍', tags: 'cerca lente' },
+            { char: '🎨', tags: 'arte pittura colore' },
+            { char: '🐈', tags: 'gatto animali pet' },
+            { char: '🐶', tags: 'cane animali pet' },
+            { char: '🍕', tags: 'pizza cibo' },
+            { char: '☕', tags: 'caffe bere pausa' },
+            { char: '🚗', tags: 'auto viaggio' },
+            { char: '✈️', tags: 'aereo viaggio volo' },
+            { char: '🏠', tags: 'casa edificio' },
+            { char: '💰', tags: 'soldi ricchezza' },
+            { char: '🎮', tags: 'gioco videogame' },
+            { char: '🏀', tags: 'sport palla' }
+            // ... (altre icone possono essere aggiunte qui)
         ];
 
         const defaultImages = [
             { id: 'def1', url: '#FFFFF0' },
-            { id: 'def2', url: 'url(https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=800)' },
-            { id: 'def3', url: 'url(https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=800)' }
+            { id: 'def2', url: 'url(https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=800)' }
         ];
 
         let customImages = JSON.parse(localStorage.getItem('fondazione_custom_imgs')) || [];
@@ -257,11 +204,23 @@
             handleRouting();
         }
 
+        function scrollToSection(id) {
+            document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function toggleArchive() {
+            const content = document.getElementById('archive-content');
+            const chevron = document.getElementById('archive-chevron');
+            const isHidden = content.style.display === 'none' || content.style.display === '';
+            content.style.display = isHidden ? 'block' : 'none';
+            chevron.innerText = isHidden ? '▲' : '▼';
+        }
+
         function renderIcons() {
             const grid = document.getElementById('icon-grid');
-            const searchTerm = document.getElementById('search-icons').value.toLowerCase();
+            const term = document.getElementById('search-icons').value.toLowerCase();
             grid.innerHTML = '';
-            iconData.filter(icon => icon.tags.includes(searchTerm) || searchTerm === '').forEach(icon => {
+            iconData.filter(i => i.tags.includes(term) || term === '').forEach(icon => {
                 const div = document.createElement('div');
                 div.className = `preview-item ${icon.char === selectedIcon ? 'selected' : ''}`;
                 div.innerHTML = `<span>${icon.char}</span>`;
@@ -282,13 +241,11 @@
                 div.className = `preview-item ${img.url === selectedBg ? 'selected' : ''}`;
                 if(img.url.startsWith('#')) div.style.backgroundColor = img.url;
                 else div.innerHTML = `<img src="${img.url.replace('url(', '').replace(')', '')}">`;
-                if (customImages.find(c => c.id === img.id)) {
-                    const del = document.createElement('button');
-                    del.className = 'delete-img-btn'; del.innerText = '×';
-                    del.onclick = (e) => { e.stopPropagation(); deleteCustomImg(img.id); };
-                    div.appendChild(del);
-                }
-                div.onclick = () => { selectedBg = img.url; renderImages(); };
+                div.onclick = () => { 
+                    selectedBg = img.url; 
+                    renderImages(); 
+                    scrollToSection('icon-section'); 
+                };
                 grid.appendChild(div);
             });
         }
@@ -296,73 +253,56 @@
         function uploadImage(input) {
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
-                reader.onload = function(e) {
+                reader.onload = (e) => {
                     const newImg = { id: 'img_' + Date.now(), url: `url(${e.target.result})` };
                     customImages.unshift(newImg);
                     localStorage.setItem('fondazione_custom_imgs', JSON.stringify(customImages));
                     selectedBg = newImg.url;
                     renderImages();
+                    scrollToSection('icon-section');
                 };
                 reader.readAsDataURL(input.files[0]);
             }
         }
 
-        function deleteCustomImg(id) {
-            customImages = customImages.filter(img => img.id !== id);
-            localStorage.setItem('fondazione_custom_imgs', JSON.stringify(customImages));
-            if (selectedBg.includes(id)) selectedBg = defaultImages[0].url;
-            renderImages();
+        function createPage() {
+            const title = document.getElementById('page-title').value.trim();
+            if (!title) return;
+            const id = title.toLowerCase().replace(/\s+/g, '-') + '-' + Date.now();
+            pages.push({ id, title, icon: selectedIcon, bg: selectedBg, description: '' });
+            localStorage.setItem('fondazione_data', JSON.stringify(pages));
+            window.location.hash = id;
         }
 
-    function createPage() {
-        const titleInput = document.getElementById('page-title').value.trim();
-        if (!titleInput) return;
+        function updateBrowserUI(title, icon) {
+            document.title = title;
+            const favicon = document.getElementById('favicon');
+            favicon.href = `data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>${icon}</text></svg>`;
+        }
 
-        // Utilizzo l'input esattamente come ricevuto per il titolo
-        const title = titleInput;
-        
-        // Genero l'ID per l'URL (slug) mantenendo una versione pulita per la navigazione
-        const id = title.toLowerCase().replace(/\s+/g, '-') + '-' + Date.now();
-        
-        // Salvo i dati
-        pages.push({ id, title, icon: selectedIcon, bg: selectedBg, description: '' });
-        localStorage.setItem('fondazione_data', JSON.stringify(pages));
-        
-        const fullUrl = window.location.origin + window.location.pathname + '#' + id;
-        navigator.clipboard.writeText(fullUrl).then(() => {
-            alert('URL copiato negli appunti!');
-            window.location.hash = id;
-        });
-    }
+        function goHome() {
+            window.location.hash = '';
+            updateBrowserUI('Editor Fondazione', '🏛️');
+        }
 
         function renderHistory() {
-            const container = document.getElementById('links-container');
-            if (pages.length === 0) { container.innerHTML = ''; return; }
-            container.innerHTML = '<h3>Archivio Pagine</h3>';
+            const container = document.getElementById('archive-content');
+            container.innerHTML = pages.length ? '' : '<p>Nessuna pagina salvata.</p>';
             pages.forEach((p, i) => {
                 const div = document.createElement('div');
                 div.className = 'history-item';
                 div.innerHTML = `
                     <span onclick="window.location.hash='${p.id}'" style="cursor:pointer"><strong>${p.icon} ${p.title}</strong></span>
-                    <button onclick="deletePage(${i})" style="color:red; background:none; border:none; cursor:pointer; font-weight:bold">ELIMINA</button>
+                    <button onclick="deletePage(${i})" style="color:red; background:none; border:none; cursor:pointer">Elimina</button>
                 `;
                 container.appendChild(div);
             });
         }
 
-        function deletePage(index) {
-            pages.splice(index, 1);
+        function deletePage(i) {
+            pages.splice(i, 1);
             localStorage.setItem('fondazione_data', JSON.stringify(pages));
             renderHistory();
-        }
-
-        function saveDescription() {
-            const page = pages.find(p => p.id === window.location.hash.substring(1));
-            if (page) {
-                page.description = document.getElementById('detail-desc').value;
-                localStorage.setItem('fondazione_data', JSON.stringify(pages));
-                alert('Salvato.');
-            }
         }
 
         function handleRouting() {
@@ -382,9 +322,18 @@
                     document.getElementById('detail-desc').value = page.description;
                     document.body.style.background = page.bg;
                     document.body.style.backgroundSize = 'cover';
-                    document.body.style.backgroundPosition = 'center';
                     document.body.style.backgroundAttachment = 'fixed';
+                    updateBrowserUI(page.title, page.icon);
                 }
+            }
+        }
+
+        function saveDescription() {
+            const page = pages.find(p => p.id === window.location.hash.substring(1));
+            if (page) {
+                page.description = document.getElementById('detail-desc').value;
+                localStorage.setItem('fondazione_data', JSON.stringify(pages));
+                alert('Contenuto salvato.');
             }
         }
 
