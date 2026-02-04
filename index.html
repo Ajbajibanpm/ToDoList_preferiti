@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editor Fondazione</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --ivory: #FFFFF0;
+            --deep-blue: #003366;
+            --gold: #B8860B;
+            --text-sans: 'Inter', sans-serif;
+            --title-serif: 'Playfair Display', serif;
+        }
+
+        body {
+            margin: 0;
+            background-color: var(--ivory);
+            color: var(--deep-blue);
+            font-family: var(--text-sans);
+            transition: background 0.5s ease;
+        }
+
+        h1, h2, h3 { font-family: var(--title-serif); font-weight: 700; }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+            min-height: 100vh;
+        }
+
+        .card {
+            background: white;
+            border: 1px solid rgba(184, 134, 11, 0.3);
+            border-radius: 4px;
+            padding: 2.5rem;
+            max-width: 700px;
+            width: 100%;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--gold);
+            background: transparent;
+            margin-bottom: 20px;
+            box-sizing: border-box;
+            font-family: var(--text-sans);
+            outline-color: var(--deep-blue);
+        }
+
+        .search-icon-input { margin-bottom: 10px !important; font-size: 0.9rem; border-style: dashed !important; }
+
+        .selector-label {
+            display: block;
+            text-align: left;
+            font-weight: 600;
+            margin: 15px 0 10px;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 1px;
+        }
+
+        .grid-preview {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+            gap: 8px;
+            margin-bottom: 20px;
+            max-height: 200px;
+            overflow-y: auto;
+            padding: 5px;
+            border: 1px solid #f0f0f0;
+        }
+
+        .img-grid { grid-template-columns: repeat(auto-fill, minmax(85px, 1fr)); max-height: none; overflow: visible; }
+
+        .preview-item {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            aspect-ratio: 1/1;
+            background: white;
+            transition: all 0.2s;
+        }
+
+        .preview-item.selected { border: 2px solid var(--gold); transform: scale(1.05); }
+        .preview-item img { width: 100%; height: 100%; object-fit: cover; }
+        
+        .delete-img-btn {
+            position: absolute; top: 2px; right: 2px;
+            background: rgba(204, 0, 0, 0.8); color: white;
+            border: none; border-radius: 50%; width: 18px; height: 18px;
+            font-size: 12px; cursor: pointer; display: none; z-index: 10;
+        }
+        .preview-item:hover .delete-img-btn { display: block; }
+
+        .add-btn { font-size: 2rem; color: var(--gold); border: 2px dashed var(--gold); order: -2; }
+
+        button.main-btn {
+            background-color: var(--deep-blue);
+            color: white; border: none; padding: 15px 40px;
+            cursor: pointer; font-weight: 600; letter-spacing: 1px;
+        }
+
+        #links-container { width: 100%; max-width: 700px; margin-bottom: 50px; text-align: left; }
+        .history-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 15px; border: 1px solid rgba(184, 134, 11, 0.1);
+            background: white; margin-bottom: 8px; border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="home-view" class="container">
+        <div id="links-container"></div>
+
+        <div class="card">
+            <h2>Nuova Risorsa</h2>
+            <input type="text" id="page-title" placeholder="Titolo della pagina...">
+
+            <span class="selector-label">Sfondo</span>
+            <div class="grid-preview img-grid" id="image-grid">
+                <div class="preview-item add-btn" onclick="document.getElementById('file-input').click()">+</div>
+                <input type="file" id="file-input" hidden accept="image/*" onchange="uploadImage(this)">
+            </div>
+
+            <span class="selector-label">Icona</span>
+            <input type="text" id="search-icons" class="search-icon-input" placeholder="Filtra icone..." oninput="renderIcons()">
+            <div class="grid-preview" id="icon-grid"></div>
+
+            <button class="main-btn" onclick="createPage()">CREA E COPIA URL</button>
+        </div>
+    </div>
+
+    <div id="detail-view" class="container" style="display:none">
+        <div class="card">
+            <div id="detail-icon" style="font-size: 4rem;"></div>
+            <h1 id="detail-title"></h1>
+            <textarea id="detail-desc" rows="8" placeholder="Scrivi qui il contenuto..."></textarea>
+            <button class="main-btn" onclick="saveDescription()">SALVA CONTENUTO</button>
+            <p style="margin-top:20px"><a href="#" onclick="window.location.hash=''; return false;" style="color: var(--gold); text-decoration: none; font-weight: bold;">← Torna all'Archivio</a></p>
+        </div>
+    </div>
+
+    <script>
+        const iconData = [
+            { char: '🏛️', tags: 'istituzione museo storia edificio roma antico' },
+            { char: '🏰', tags: 'castello storia medioevo fiaba' },
+            { char: '📜', tags: 'pergamena storia antico documento scrittura' },
+            { char: '📖', tags: 'libro lettura studio scuola biblioteca' },
+            { char: '📚', tags: 'libri studio biblioteca scuola' },
+            { char: '⏳', tags: 'tempo clessidra attesa storia' },
+            { char: '🌍', tags: 'mondo terra viaggio geografia' },
+            { char: '🧭', tags: 'bussola viaggio orientamento nord' },
+            { char: '🗺️', tags: 'mappa viaggio geografia' },
+            { char: '🔒', tags: 'lucchetto sicurezza chiuso privacy' },
+            { char: '💻', tags: 'computer tech tecnologia pc lavoro' },
+            { char: '📱', tags: 'telefono smartphone cellulare tech mobile' },
+            { char: '📞', tags: 'chiamata telefono ufficio' },
+            { char: '📠', tags: 'fax ufficio tech vecchio' },
+            { char: '💿', tags: 'disco cd dvd tech musica' },
+            { char: '💡', tags: 'idea luce lampadina pensiero' },
+            { char: '⚡', tags: 'energia fulmine elettricità carica' },
+            { char: '🧪', tags: 'scienza laboratorio chimica esperimento' },
+            { char: '📊', tags: 'grafico dati ufficio lavoro tech' },
+            { char: '📈', tags: 'crescita grafico dati ufficio' },
+            { char: '🔍', tags: 'cerca lente ricerca trova' },
+            { char: '🌡️', tags: 'meteo temperatura caldo freddo scienza' },
+            { char: '🖋️', tags: 'penna scrittura ufficio firma' },
+            { char: '✂️', tags: 'forbici taglia ufficio lavoro' },
+            { char: '🛠️', tags: 'strumenti lavoro riparazione attrezzi' },
+            { char: '📁', tags: 'cartella ufficio documenti' },
+            { char: '💼', tags: 'lavoro valigetta ufficio business' },
+            { char: '🗓️', tags: 'calendario data tempo appuntamento' },
+            { char: '✉️', tags: 'mail posta lettera ufficio' },
+            { char: '📦', tags: 'pacco spedizione scatola' },
+            { char: '🔑', tags: 'chiave casa apri sicurezza' },
+            { char: '📷', tags: 'foto macchina fotografia memoria' },
+            { char: '🎨', tags: 'arte pittura disegno colore' },
+            { char: '🌸', tags: 'fiore primavera natura ciliegio' },
+            { char: '🌹', tags: 'rosa fiore amore natura' },
+            { char: '🌷', tags: 'tulipano fiore natura primavera' },
+            { char: '🌱', tags: 'pianta natura crescita verde' },
+            { char: '🌳', tags: 'albero natura bosco verde' },
+            { char: '🥦', tags: 'verdura cibo salute vegetale' },
+            { char: '🥕', tags: 'carota verdura cibo salute' },
+            { char: '🍎', tags: 'mela frutta cibo salute' },
+            { char: '🐾', tags: 'impronta animali cane gatto natura' },
+            { char: '🐈', tags: 'gatto animali pet casa' },
+            { char: '🐶', tags: 'cane animali pet casa' },
+            { char: '🐱', tags: 'gatto muso animali pet' },
+            { char: '🍕', tags: 'pizza cibo cena italia' },
+            { char: '🍝', tags: 'pasta cibo cena italia' },
+            { char: '🥘', tags: 'cibo cucina padella cena' },
+            { char: '🧀', tags: 'formaggio cibo snack' },
+            { char: '🍽️', tags: 'piatti posate cibo cena ristorante' },
+            { char: '🥛', tags: 'latte bicchiere acqua bere' },
+            { char: '☕', tags: 'caffè colazione bere pausa' },
+            { char: '🍷', tags: 'vino bere cena festa' },
+            { char: '🍺', tags: 'birra bere festa pub' },
+            { char: '🚗', tags: 'auto macchina viaggio trasporto' },
+            { char: '🏎️', tags: 'auto corsa macchina veloce' },
+            { char: '🚲', tags: 'bici bicicletta sport trasporto' },
+            { char: '✈️', tags: 'aereo viaggio volo vacanza' },
+            { char: '🚀', tags: 'razzo spazio tech viaggio' },
+            { char: '🛸', tags: 'ufo alieni spazio mistero' },
+            { char: '🧳', tags: 'valigia viaggio vacanza bagaglio' },
+            { char: '⛱️', tags: 'ombrellone mare vacanza estate' },
+            { char: '🚩', tags: 'bandiera segnale obiettivo' },
+            { char: '🏠', tags: 'casa edificio famiglia' },
+            { char: '🛌', tags: 'letto riposo dormire casa' },
+            { char: '🛁', tags: 'vasca bagno doccia pulizia' },
+            { char: '🧻', tags: 'carta bagno pulizia casa' },
+            { char: '🎒', tags: 'zaino scuola viaggio' },
+            { char: '👔', tags: 'vestito formale lavoro ufficio' },
+            { char: '🛒', tags: 'spesa carrello acquisti' },
+            { char: '🎁', tags: 'regalo festa compleanno' },
+            { char: '🎀', tags: 'fiocco regalo decorazione' },
+            { char: '💰', tags: 'soldi denaro ricchezza banca' },
+            { char: '💎', tags: 'diamante valore gioiello' },
+            { char: '🎸', tags: 'chitarra musica strumento rock' },
+            { char: '🎵', tags: 'nota musica canzone audio' },
+            { char: '🎧', tags: 'cuffie musica audio tech' },
+            { char: '🎮', tags: 'videogioco gioco tech svago' },
+            { char: '🕹️', tags: 'joystick gioco tech vintage' },
+            { char: '⚽', tags: 'calcio sport palla gioco' },
+            { char: '🎲', tags: 'dado gioco fortuna azzardo' },
+            { char: '🎯', tags: 'bersaglio obiettivo gioco precisione' }
+        ];
+
+        const defaultImages = [
+            { id: 'def1', url: '#FFFFF0' },
+            { id: 'def2', url: 'url(https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=800)' },
+            { id: 'def3', url: 'url(https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=800)' }
+        ];
+
+        let customImages = JSON.parse(localStorage.getItem('fondazione_custom_imgs')) || [];
+        let pages = JSON.parse(localStorage.getItem('fondazione_data')) || [];
+        let selectedIcon = iconData[0].char;
+        let selectedBg = defaultImages[0].url;
+
+        function init() {
+            renderIcons();
+            renderImages();
+            renderHistory();
+            handleRouting();
+        }
+
+        function renderIcons() {
+            const grid = document.getElementById('icon-grid');
+            const searchTerm = document.getElementById('search-icons').value.toLowerCase();
+            grid.innerHTML = '';
+            iconData.filter(icon => icon.tags.includes(searchTerm) || searchTerm === '').forEach(icon => {
+                const div = document.createElement('div');
+                div.className = `preview-item ${icon.char === selectedIcon ? 'selected' : ''}`;
+                div.innerHTML = `<span>${icon.char}</span>`;
+                div.onclick = () => { selectedIcon = icon.char; renderIcons(); };
+                grid.appendChild(div);
+            });
+        }
+
+        function renderImages() {
+            const grid = document.getElementById('image-grid');
+            const addBtn = grid.querySelector('.add-btn');
+            const fileInp = grid.querySelector('#file-input');
+            grid.innerHTML = '';
+            grid.appendChild(addBtn);
+            grid.appendChild(fileInp);
+            [...customImages, ...defaultImages].forEach(img => {
+                const div = document.createElement('div');
+                div.className = `preview-item ${img.url === selectedBg ? 'selected' : ''}`;
+                if(img.url.startsWith('#')) div.style.backgroundColor = img.url;
+                else div.innerHTML = `<img src="${img.url.replace('url(', '').replace(')', '')}">`;
+                if (customImages.find(c => c.id === img.id)) {
+                    const del = document.createElement('button');
+                    del.className = 'delete-img-btn'; del.innerText = '×';
+                    del.onclick = (e) => { e.stopPropagation(); deleteCustomImg(img.id); };
+                    div.appendChild(del);
+                }
+                div.onclick = () => { selectedBg = img.url; renderImages(); };
+                grid.appendChild(div);
+            });
+        }
+
+        function uploadImage(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const newImg = { id: 'img_' + Date.now(), url: `url(${e.target.result})` };
+                    customImages.unshift(newImg);
+                    localStorage.setItem('fondazione_custom_imgs', JSON.stringify(customImages));
+                    selectedBg = newImg.url;
+                    renderImages();
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function deleteCustomImg(id) {
+            customImages = customImages.filter(img => img.id !== id);
+            localStorage.setItem('fondazione_custom_imgs', JSON.stringify(customImages));
+            if (selectedBg.includes(id)) selectedBg = defaultImages[0].url;
+            renderImages();
+        }
+
+    function createPage() {
+        const titleInput = document.getElementById('page-title').value.trim();
+        if (!titleInput) return;
+
+        // Utilizzo l'input esattamente come ricevuto per il titolo
+        const title = titleInput;
+        
+        // Genero l'ID per l'URL (slug) mantenendo una versione pulita per la navigazione
+        const id = title.toLowerCase().replace(/\s+/g, '-') + '-' + Date.now();
+        
+        // Salvo i dati
+        pages.push({ id, title, icon: selectedIcon, bg: selectedBg, description: '' });
+        localStorage.setItem('fondazione_data', JSON.stringify(pages));
+        
+        const fullUrl = window.location.origin + window.location.pathname + '#' + id;
+        navigator.clipboard.writeText(fullUrl).then(() => {
+            alert('URL copiato negli appunti!');
+            window.location.hash = id;
+        });
+    }
+
+        function renderHistory() {
+            const container = document.getElementById('links-container');
+            if (pages.length === 0) { container.innerHTML = ''; return; }
+            container.innerHTML = '<h3>Archivio Pagine</h3>';
+            pages.forEach((p, i) => {
+                const div = document.createElement('div');
+                div.className = 'history-item';
+                div.innerHTML = `
+                    <span onclick="window.location.hash='${p.id}'" style="cursor:pointer"><strong>${p.icon} ${p.title}</strong></span>
+                    <button onclick="deletePage(${i})" style="color:red; background:none; border:none; cursor:pointer; font-weight:bold">ELIMINA</button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function deletePage(index) {
+            pages.splice(index, 1);
+            localStorage.setItem('fondazione_data', JSON.stringify(pages));
+            renderHistory();
+        }
+
+        function saveDescription() {
+            const page = pages.find(p => p.id === window.location.hash.substring(1));
+            if (page) {
+                page.description = document.getElementById('detail-desc').value;
+                localStorage.setItem('fondazione_data', JSON.stringify(pages));
+                alert('Salvato.');
+            }
+        }
+
+        function handleRouting() {
+            const hash = window.location.hash.substring(1);
+            const home = document.getElementById('home-view');
+            const detail = document.getElementById('detail-view');
+            if (!hash) {
+                home.style.display = 'flex'; detail.style.display = 'none';
+                document.body.style.background = 'var(--ivory)';
+                renderHistory();
+            } else {
+                const page = pages.find(p => p.id === hash);
+                if (page) {
+                    home.style.display = 'none'; detail.style.display = 'flex';
+                    document.getElementById('detail-title').innerText = page.title;
+                    document.getElementById('detail-icon').innerText = page.icon;
+                    document.getElementById('detail-desc').value = page.description;
+                    document.body.style.background = page.bg;
+                    document.body.style.backgroundSize = 'cover';
+                    document.body.style.backgroundPosition = 'center';
+                    document.body.style.backgroundAttachment = 'fixed';
+                }
+            }
+        }
+
+        window.addEventListener('hashchange', handleRouting);
+        window.onload = init;
+    </script>
+</body>
+</html>
